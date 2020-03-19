@@ -28,6 +28,7 @@
 #endif
 
 #include <winpr/pipe.h>
+#include <winpr/wtsapi.h>
 
 #include <freerdp/channels/wtsvc.h>
 #include <freerdp/freerdp.h>
@@ -502,6 +503,7 @@ static BOOL wts_read_drdynvc_create_response(registered_virtual_channel *channel
 static BOOL wts_read_drdynvc_data_first(registered_virtual_channel *channel, wStream *s, int cbLen, UINT32 length)
 {
 	int value;
+	CHANNEL_PDU_HEADER header;
 
 	if (channel->dvc_total_length) {
 		/* If we haven't seen all the bytes of the previous packet there's good chances
@@ -529,12 +531,20 @@ static BOOL wts_read_drdynvc_data_first(registered_virtual_channel *channel, wSt
 
 	channel->dvc_total_length -= length;
 
-	return ringbuffer_write(&channel->pipe_xmit_buffer, Stream_Pointer(s), length) &&
+	header.flags = CHANNEL_FLAG_FIRST;
+	if (channel->dvc_total_length == 0)
+		header.flags |= CHANNEL_FLAG_LAST;
+	header.length = length;
+
+	return ringbuffer_write(&channel->pipe_xmit_buffer, (const BYTE *)&header, sizeof(header)) &&
+			ringbuffer_write(&channel->pipe_xmit_buffer, Stream_Pointer(s), length) &&
 			vc_flush_xmit_buffer(channel, VC_BYTES_LIMIT_PER_LOOP_TURN);
 }
 
 static BOOL wts_read_drdynvc_data(registered_virtual_channel *channel, wStream *s, UINT32 length)
 {
+	CHANNEL_PDU_HEADER header;
+
 	if (channel->dvc_total_length > 0)
 	{
 		if (length > channel->dvc_total_length)
@@ -548,7 +558,11 @@ static BOOL wts_read_drdynvc_data(registered_virtual_channel *channel, wStream *
 		channel->dvc_total_length -= length;
 	}
 
-	return ringbuffer_write(&channel->pipe_xmit_buffer, Stream_Pointer(s), length) &&
+	header.flags = (channel->dvc_total_length == 0) ? CHANNEL_FLAG_LAST : 0;
+	header.length = length;
+
+	return ringbuffer_write(&channel->pipe_xmit_buffer, (const BYTE *)&header, sizeof(header)) &&
+		ringbuffer_write(&channel->pipe_xmit_buffer, Stream_Pointer(s), length) &&
 		vc_flush_xmit_buffer(channel, VC_BYTES_LIMIT_PER_LOOP_TURN);
 }
 
