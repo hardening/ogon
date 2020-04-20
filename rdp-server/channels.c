@@ -733,7 +733,9 @@ out_flush:
 	return ret;
 }
 
-static int ogon_receiveFrontendChannelData(freerdp_peer *client, UINT16 channelId, const BYTE* data, int size, int flags, int totalSize)
+
+static BOOL ogon_receiveFrontendChannelData(freerdp_peer *client, UINT16 channelId, const BYTE* data,
+		size_t size, UINT32 flags, size_t totalSize)
 {
 	registered_virtual_channel *channel;
 
