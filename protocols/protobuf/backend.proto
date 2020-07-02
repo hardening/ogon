@@ -3,29 +3,28 @@ package ogon.backend;
 
 
 enum MSGTYPE {
-	Capabilities = 0;
-	GetVersion = 1;
-	SyncRequest = 2;
-	ImmediateSyncRequest = 3;
-	SeatNew = 4;
-	SeatRemove = 5;
-	SbpReply = 6;
-	KeyboardSynchronize = 7;
-	KeyboardScanCode = 8;
-	KeyboardVirtualScanCode = 9;
-	KeyboardUnicode = 10;
-	MouseBasic = 11;
-	MouseExtented = 12;
-	Message = 13;
-	
-	
-	FrameBufferInfos = 200;
-	SyncReply = 201;
-	SetSystemPointer = 202;
-	SetPointerShape = 203;
-	Beep = 204;
-	SbpRequest = 205;
-	MessageReply = 206;	
+	SetPointerShape		= 0;
+	FrameBufferInfos	= 1;
+	Beep 				= 2;
+	SetSystemPointer 	= 3;
+	SbpRequest 			= 4;
+	SyncReply 			= 5;
+	MessageReply 		= 6;
+	VersionReply		= 7;
+	Capabilities 		= 8;
+	KeyboardSynchronize = 9;
+	KeyboardScanCode 	= 10;
+	KeyboardVirtualScanCode = 11;
+	MouseBasic 			= 12;
+	MouseExtented 		= 13;
+	SyncRequest 		= 14;
+	SbpReply 			= 15;
+	ImmediateSyncRequest = 16;
+	SeatNew 			= 17;
+	SeatRemove 			= 18;
+	Message 			= 19;
+	GetVersion 			= 20;
+	SetMousePosition 	= 21;
 }
 
 message capabilities {
@@ -109,6 +108,11 @@ message message {
 	required uint32 style = 3;
 	required uint32 timeout = 4;
 	repeated string parameters = 5;
+}
+
+message setMousePosition {
+	required uint32 posX = 1;
+	required uint32 posY = 2;
 }
 
 message versionReply {

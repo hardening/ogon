@@ -79,6 +79,7 @@ enum {
 	OGON_CLIENT_SEAT_REMOVED                 = 18,
 	OGON_CLIENT_MESSAGE                      = 19,
 	OGON_CLIENT_VERSION                      = 20,
+	OGON_SERVER_SET_MOUSE_POSITION			 = 21,
 };
 
 typedef struct _ogon_msg_synchronize_keyboard_event {
@@ -230,6 +231,10 @@ typedef struct _ogon_msg_message_reply {
 	UINT32 result;
 } ogon_msg_message_reply;
 
+typedef struct _ogon_msg_set_mouse_position {
+	UINT32 x;
+	UINT32 y;
+} ogon_msg_set_mouse_position;
 
 typedef BOOL (*pfn_ogon_client_capabilities)(void *backend, ogon_msg_capabilities *capabilities);
 typedef BOOL (*pfn_ogon_client_synchronize_keyboard_event)(void *backend, DWORD flags, UINT32 clientId);
@@ -274,6 +279,7 @@ typedef union _ogon_message {
 	ogon_msg_sbp_request sbpRequest;
 	ogon_msg_framebuffer_sync_reply framebufferSyncReply;
 	ogon_msg_message_reply messageReply;
+	ogon_msg_set_mouse_position setMousePosition;
 
 	/* client part */
 	ogon_msg_synchronize_keyboard_event synchronizeKeyboard;

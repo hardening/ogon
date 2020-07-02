@@ -172,7 +172,7 @@ void ogon_state_set_event(ogon_state_machine *stateMachine, ogon_event event) {
 #endif
 	DEBUG_STATE("Event %s", get_event_name(event));
 
-	switch(event){
+	switch(event) {
 
 	case OGON_EVENT_BACKEND_SYNC_REPLY_RECEIVED:
 		if (stateMachine->outputSuppressed || stateMachine->waitingGraphicsPipeline) {

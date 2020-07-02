@@ -955,7 +955,40 @@ static message_descriptor message_reply_descriptor = {
 	(pfn_ogon_message_free) NULL
 };
 
+/* === set mouse position ====================================================== */
 
+static BOOL ogon_read_set_mouse_position(wStream *s, ogon_msg_set_mouse_position* msg)
+{
+	Ogon__Backend__SetMousePosition *proto;
+
+	proto = ogon__backend__set_mouse_position__unpack(NULL, Stream_Length(s), (uint8_t*)Stream_Pointer(s));
+	if (!proto) {
+		return FALSE;
+	}
+
+	msg->x = proto->posx;
+	msg->y = proto->posy;
+
+	ogon__backend__set_mouse_position__free_unpacked(proto, NULL);
+	return TRUE;
+}
+
+static int ogon_prepare_set_mouse_position(ogon_msg_set_mouse_position* msg, Ogon__Backend__SetMousePosition *target) {
+	ogon__backend__set_mouse_position__init(target);
+	target->posx = msg->x;
+	target->posy = msg->y;
+
+	return ogon__backend__set_mouse_position__get_packed_size(target);
+}
+
+
+static message_descriptor set_mouse_position_descriptor = {
+	"SetMousePosition",
+	(pfn_ogon_message_read) ogon_read_set_mouse_position,
+	(pfn_ogon_message_prepare) ogon_prepare_set_mouse_position,
+	(pfn_ogon_message_unprepare) NULL,
+	(pfn_ogon_message_free) NULL,
+};
 
 
 
@@ -986,6 +1019,7 @@ static message_descriptor *messages[] = {
 	&seat_removed_descriptor,             /* 18 */
 	&user_message_descriptor,             /* 19 */
 	&version_descriptor,                  /* 20 */
+	&set_mouse_position_descriptor,		  /* 21 */
 };
 
 #define DESCRIPTORS_NB (sizeof(messages) / sizeof(message_descriptor *))

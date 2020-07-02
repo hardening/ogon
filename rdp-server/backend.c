@@ -729,7 +729,7 @@ static int ogon_server_set_pointer(ogon_connection *connection,
 	}
 
 
-	WLog_DBG(TAG, "(%ld) set_pointer_shape message for %"PRIu32"", connection->id, msg->clientId);
+	/*WLog_DBG(TAG, "(%ld) set_pointer_shape message for %"PRIu32"", connection->id, msg->clientId);*/
 
 	/* then broadcast the new pointer to all target front connections */
 	LinkedList_Enumerator_Reset(connection->frontConnections);
@@ -758,8 +758,8 @@ static int ogon_server_set_system_pointer(ogon_connection *connection,
 		return 0;
 	}
 
-	WLog_DBG(TAG, "(%ld) set_system_pointer message type %"PRIu32" to %"PRIu32"", connection->id,
-			msg->ptrType, msg->clientId);
+	/*WLog_DBG(TAG, "(%ld) set_system_pointer message type %"PRIu32" to %"PRIu32"", connection->id,
+			msg->ptrType, msg->clientId);*/
 
 	LinkedList_Enumerator_Reset(connection->frontConnections);
 	while (LinkedList_Enumerator_MoveNext(connection->frontConnections)) {
@@ -938,6 +938,26 @@ static int ogon_server_message_reply(ogon_connection *connection,
 	return 1;
 }
 
+static int ogon_server_set_position(ogon_connection *connection,
+		ogon_msg_set_mouse_position *msg)
+{
+	ogon_backend_connection *backend = connection->backend;
+	POINTER_POSITION_UPDATE pointerUpdate = { msg->x, msg->y };
+
+	if (!backend->active) {
+		WLog_ERR(TAG, "not treating server set position as backend is not active");
+		return 0;
+	}
+
+	LinkedList_Enumerator_Reset(connection->frontConnections);
+	while (LinkedList_Enumerator_MoveNext(connection->frontConnections)) {
+		ogon_connection *frontConnection = LinkedList_Enumerator_Current(connection->frontConnections);
+		frontConnection->context.peer->update->pointer->PointerPosition(&frontConnection->context, &pointerUpdate);
+	}
+
+	return 0;
+}
+
 backend_server_protocol_cb serverCallbacks[] = {
 	(backend_server_protocol_cb)ogon_server_set_pointer,              /*  0 - OGON_SERVER_SET_POINTER */
 	(backend_server_protocol_cb)ogon_server_framebuffer_info,         /*  1 - OGON_SERVER_FRAMEBUFFER_INFO */
@@ -946,7 +966,21 @@ backend_server_protocol_cb serverCallbacks[] = {
 	(backend_server_protocol_cb)ogon_server_sbp_request,              /*  4 - OGON_SERVER_SBP_REQUEST */
 	(backend_server_protocol_cb)ogon_server_framebuffer_sync_reply,   /*  5 - OGON_SERVER_FRAMEBUFFER_SYNC_REPLY */
 	(backend_server_protocol_cb)ogon_server_message_reply,            /*  6 - OGON_SERVER_MESSAGE_REPLY */
-	NULL,                                                                       /*  7 - OGON_SERVER_VERSION_REPLY */
+	NULL,                                                             /*  7 - OGON_SERVER_VERSION_REPLY  */
+	NULL,                                                             /*  8 - OGON_CLIENT_CAPABILITIES */
+	NULL,                                                             /*  9 - OGON_CLIENT_SYNCHRONIZE_KEYBOARD_EVENT */
+	NULL,                                                             /*  10 - OGON_CLIENT_SCANCODE_KEYBOARD_EVENT */
+	NULL,                                                             /*  11 - OGON_CLIENT_UNICODE_KEYBOARD_EVENT */
+	NULL,                                                             /*  12 - OGON_CLIENT_MOUSE_EVENT */
+	NULL,                                                             /*  13 - OGON_CLIENT_EXTENDED_MOUSE_EVENT */
+	NULL,                                                             /*  14 - OGON_CLIENT_FRAMEBUFFER_SYNC_REQUEST */
+	NULL,                                                             /*  15 - OGON_CLIENT_SBP_REPLY */
+	NULL,                                                             /*  16 - OGON_CLIENT_IMMEDIATE_SYNC_REQUEST */
+	NULL,                                                             /*  17 - OGON_CLIENT_SEAT_NEW */
+	NULL,                                                             /*  18 - OGON_CLIENT_SEAT_REMOVED */
+	NULL,                                                             /*  19 - OGON_CLIENT_MESSAGE */
+	NULL,                                                             /*  20 - OGON_CLIENT_VERSION*/
+	(backend_server_protocol_cb)ogon_server_set_position,			  /*  21 - OGON_SERVER_SET_MOUSE_POSITION */
 };
 
 #define SERVER_CALLBACKS_NB (sizeof(serverCallbacks) / sizeof(backend_server_protocol_cb))
